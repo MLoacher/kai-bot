@@ -1,0 +1,98 @@
+services:
+  kai:
+    build: .
+    image: kai:local
+    container_name: kai
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - TZ=Europe/Berlin
+      - KAI_DATA_DIR=/data
+      - SANDBOX_DIR=/sandbox
+    volumes:
+      # Das Einzige, was Kai vom Rechner sieht: sein eigener Ordner.
+      # Verlauf (kai.db), Anhaenge, WhatsApp-Kopplung, Claude-Sessions.
+      # Der Ordner muss UID 1000 gehoeren, siehe README.
+      - ./data:/data
+      # Austausch mit der Sandbox: hier legt Kai Dateien ab und holt Ergebnisse.
+      - ./sandbox-jobs:/sandbox
+
+    # Abschottung. Kai liest Nachrichten von Leuten, die ihn absichtlich
+    # austricksen wollen. Selbst wenn das gelingt, soll im Container nichts
+    # zu holen und nichts zu veraendern sein.
+    user: "1000:1000"
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    # 2g: das Freistellen haelt ein Segmentierungsmodell im Speicher.
+    mem_limit: 2g
+    pids_limit: 256
+
+    # Netzwerk teilt sich Kai mit der Firewall-Huelle (kai-firewall): die sperrt
+    # das Heimnetz hart und laesst nur oeffentliches Web durch. Kai
+    # hat dadurch keine eigene Netzkonfiguration mehr, sie kommt von dort.
+    network_mode: "service:kai-firewall"
+    depends_on:
+      - kai-firewall
+
+    labels:
+      # Lokal gebautes Image, Diun kann dafuer nichts melden.
+      - "diun.enable=false"
+
+  # Firewall-Huelle fuer Kai: besitzt den Netz-Namespace, den Kai nutzt, und
+  # sperrt per iptables das ganze Heimnetz (192.168.x, 10.x, 172.16-31.x).
+  # Nur oeffentliches Web geht raus. So kann niemand Kai aus
+  # der Gruppe dazu bringen, das Heimnetz anzugreifen. Enthaelt keinen App-Code,
+  # nur die Regeln - also selbst keine Angriffsflaeche.
+  kai-firewall:
+    build: ./firewall
+    image: kai-firewall:local
+    container_name: kai-firewall
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - kai
+    dns:
+      - 1.1.1.1
+      - 9.9.9.9
+    labels:
+      - "diun.enable=false"
+
+  # Sandbox: hier laeuft der Code, den Kai zum Bearbeiten von Dateien schreibt.
+  # Bewusst voellig abgeschottet und OHNE Geheimnisse: kein Netz (network_mode
+  # none), keine .env, keine Rechte. Selbst ein voller Einbruch findet hier
+  # nichts - keine Token, kein Heimnetz, kein Internet, kein Host. Kai und die
+  # Sandbox tauschen nur Dateien ueber /sandbox aus.
+  kai-sandbox:
+    build: ./sandbox
+    image: kai-sandbox:local
+    container_name: kai-sandbox
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Berlin
+      - SANDBOX_DIR=/sandbox
+    volumes:
+      - ./sandbox-jobs:/sandbox
+    network_mode: none
+    user: "1000:1000"
+    read_only: true
+    tmpfs:
+      - /tmp:size=1g
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 2g
+    pids_limit: 512
+    labels:
+      - "diun.enable=false"
+
+networks:
+  kai:
+    name: kai
