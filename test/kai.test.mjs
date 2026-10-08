@@ -30,7 +30,7 @@ test('@-Erwaehnung und Antwort auf Kai wecken Kai, auch mit Geraeteanhang und LI
 })
 
 test('private Adressen werden erkannt', () => {
-  for (const ip of ['192.168.0.4', '10.1.2.3', '172.20.0.1', '127.0.0.1', '100.100.1.1', '169.254.1.1', '::1', 'fd12::1', '::ffff:192.168.0.2', '0.0.0.0']) {
+  for (const ip of ['192.168.1.20', '10.1.2.3', '172.20.0.1', '127.0.0.1', '100.100.1.1', '169.254.1.1', '::1', 'fd12::1', '::ffff:192.168.1.10', '0.0.0.0']) {
     assert.equal(isPrivateIp(ip), true, ip)
   }
   for (const ip of ['1.1.1.1', '104.16.1.1', '2606:4700::1111']) assert.equal(isPrivateIp(ip), false, ip)
@@ -39,12 +39,12 @@ test('private Adressen werden erkannt', () => {
 test('Link-Schutz: Heimnetz und eigene Domains gesperrt, oeffentliche Seiten frei', async () => {
   const fakeDns = async (host) => ({
     'example.com': [{ address: '93.184.215.14' }],
-    'rebind.example': [{ address: '192.168.0.2' }],
+    'rebind.example': [{ address: '192.168.1.10' }],
   })[host] || Promise.reject(new Error('NXDOMAIN'))
   process.env.KAI_BLOCKED_DOMAINS = 'heimserver.example'
   assert.equal(await checkUrl('https://example.com/artikel', fakeDns), null)
   for (const url of [
-    'http://192.168.0.4/admin', 'https://media.heimserver.example', 'https://heimserver.example', 'http://localhost:8123',
+    'http://192.168.1.20/admin', 'https://media.heimserver.example', 'https://heimserver.example', 'http://localhost:8123',
     'http://ntfy/alarm', 'file:///etc/passwd', 'https://rebind.example', 'http://[::1]/', 'https://user:pw@example.com',
     'http://homeassistant.local', 'https://gibtsnicht.example',
   ]) {

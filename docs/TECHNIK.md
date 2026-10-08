@@ -97,7 +97,7 @@ Jeder Sticker aus einem freigegebenen Chat landet automatisch in Kais Sammlung (
 
 ### Verlauf durchsuchen
 
-Alles aus freigegebenen Chats bleibt gespeichert: Text, Bilder, Sticker, PDFs, Sprachnachrichten (Audio und Transkript), Videos (Standbild-Raster und Transkript des Tons, durchsuchbar). Kai durchsucht das mit `verlauf_suchen` (Stichwort, Zeitraum) und liest Abschnitte mit `verlauf_lesen`. Im Direktchat darf der Besitzer auch eine freigegebene Gruppe nennen ("was hat Tom letzte Woche in Mastermind zum Angebot gesagt?"), sonst sieht Kai immer nur den Chat, in dem er gerade ist.
+Alles aus freigegebenen Chats bleibt gespeichert: Text, Bilder, Sticker, PDFs, Sprachnachrichten (Audio und Transkript), Videos (Standbild-Raster und Transkript des Tons, durchsuchbar). Kai durchsucht das mit `verlauf_suchen` (Stichwort, Zeitraum) und liest Abschnitte mit `verlauf_lesen`. Im Direktchat darf der Besitzer auch eine freigegebene Gruppe nennen ("was hat Tom letzte Woche in der Familiengruppe zum Angebot gesagt?"), sonst sieht Kai immer nur den Chat, in dem er gerade ist.
 
 ### Befehle (nur der Besitzer, in der Gruppe)
 
